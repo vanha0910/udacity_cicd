@@ -1,0 +1,72 @@
+name: Frontend Continuous Integration
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+        - main
+    paths:
+      - 'starter/frontend/**'
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+        run:
+          working-directory: starter/frontend
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Use Node.js 
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{env.NODE_VERSION}}
+        cache: 'npm'
+        cache-dependency-path: "starter/frontend/package-lock.json"
+        
+    - name: Lint
+      run: | 
+        npm ci
+        npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+        run:
+          working-directory: starter/frontend
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Use Node.js 
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{env.NODE_VERSION}}
+        cache: 'npm'
+        cache-dependency-path: "starter/frontend/package-lock.json"
+        
+    - name: Test
+      run: | 
+        npm ci
+        npm run test 
+
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: starter/frontend
+    needs:
+      - lint
+      - test 
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Build docker image
+      run: |
+        docker build -t frontend .
